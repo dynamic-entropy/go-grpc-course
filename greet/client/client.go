@@ -6,6 +6,7 @@ import (
 	"grpc-course/greet/greetpb"
 	"io"
 	"log"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -21,7 +22,8 @@ func main() {
 	c := greetpb.NewGreetServiceClient(cc)
 
 	// doUnary(c)
-	doServerStreaming(c)
+	// doServerStreaming(c)
+	doClientStreaming(c)
 }
 
 func doUnary(c greetpb.GreetServiceClient) {
@@ -48,7 +50,7 @@ func doServerStreaming(c greetpb.GreetServiceClient) {
 
 	resStream, err := c.GreetManyTimes(context.Background(), in)
 	if err != nil {
-		log.Fatalf("Error occured while calling server: %v", err)
+		log.Fatalf("Unable to create a GreetManyTimesClient: %v", err)
 	}
 
 	for {
@@ -56,8 +58,46 @@ func doServerStreaming(c greetpb.GreetServiceClient) {
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			log.Fatalf("Error occured while server streaming: %v ", err)
+			log.Fatalf("Error occured while receiving stream response: %v ", err)
 		}
 		fmt.Println("GreetManyTimes Message Received: ", res.GetResult())
 	}
+}
+
+func doClientStreaming(c greetpb.GreetServiceClient) {
+
+	reqStream, err := c.LongGreet(context.Background())
+	if err != nil {
+		log.Fatalf("Unable to create a LongGreetClient: %v", err)
+	}
+
+	ins := []*greetpb.LongGreetRequest{
+		{Greeting: &greetpb.Greeting{
+			FirstName: "India",
+		}},
+		{Greeting: &greetpb.Greeting{
+			FirstName: "China",
+		}},
+		{Greeting: &greetpb.Greeting{
+			FirstName: "Russia",
+		}},
+		{Greeting: &greetpb.Greeting{
+			FirstName: "United Kingdom",
+		}},
+	}
+
+	for _, in := range ins {
+		if err := reqStream.Send(in); err != nil {
+			log.Fatalf("Error occured while sending requests: %v", err)
+		}
+		time.Sleep(time.Millisecond * 1000)
+	}
+
+	res, err := reqStream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("Failed to recieve response: %v", err)
+	}
+
+	fmt.Println("Response from server: ", res.GetResult())
+
 }

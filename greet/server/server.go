@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"grpc-course/greet/greetpb"
+	"io"
 	"log"
 	"net"
 	"strconv"
@@ -39,6 +40,23 @@ func (s *server) GreetManyTimes(req *greetpb.GreetManyTimesRequest, resStream gr
 		time.Sleep(time.Millisecond * 1000)
 	}
 	return nil
+}
+
+func (s *server) LongGreet(reqStream greetpb.GreetService_LongGreetServer) error {
+	fmt.Println("LongGreet instance invoked")
+
+	result := ""
+
+	for {
+		req, err := reqStream.Recv()
+		if err == io.EOF {
+			return reqStream.SendAndClose(&greetpb.LongGreetResponse{Result: result})
+		} else if err != nil {
+			log.Fatalf("Error receiving LongGreet request stream: %v", err)
+		}
+
+		result += "\nHello, " + req.GetGreeting().GetFirstName()
+	}
 }
 
 func main() {
