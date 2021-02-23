@@ -59,6 +59,26 @@ func (s *server) LongGreet(reqStream greetpb.GreetService_LongGreetServer) error
 	}
 }
 
+func (s *server) GreetEveryone(reqStream greetpb.GreetService_GreetEveryoneServer) error {
+	fmt.Println("GreetEveryone instance invoked")
+
+	for {
+		req, err := reqStream.Recv()
+		if err == io.EOF {
+			return nil
+		} else if err != nil {
+			log.Fatalf("Error while receiveing message: %v", err)
+			return err
+		}
+
+		fmt.Println(req.GetGreeting())
+		result := "Hello, " + req.GetGreeting().GetFirstName()
+		if err := reqStream.Send(&greetpb.GreetEveryoneResponse{Result: result}); err != nil {
+			log.Fatalf("Error while receiveing message: %v", err)
+		}
+	}
+}
+
 func main() {
 	fmt.Println("Hello World, I am a Server!!!")
 
