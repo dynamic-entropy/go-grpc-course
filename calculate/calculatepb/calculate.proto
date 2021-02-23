@@ -13,6 +13,17 @@ message SumResponse{
     int32 sum = 1;
 }
 
+message SquareRootRequest{
+    double num = 1;
+}
+
+message SquareRootResponse{
+    double root_num = 1;
+}
+
 service CalculatorService {
     rpc Sum (SumRequest) returns (SumResponse);
+    
+    //throws an invalid argument error for input values smaller than 0
+    rpc SquareRoot (SquareRootRequest) returns (SquareRootResponse);
 }

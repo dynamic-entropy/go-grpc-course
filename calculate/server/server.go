@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"grpc-course/calculate/calculatepb"
 	"log"
+	"math"
 	"net"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type server struct {
@@ -22,6 +25,24 @@ func (s *server) Sum(ctx context.Context, req *calculatepb.SumRequest) (*calcula
 	}
 
 	return res, nil
+}
+
+func (s *server) SquareRoot(ctx context.Context, req *calculatepb.SquareRootRequest) (*calculatepb.SquareRootResponse, error) {
+	fmt.Println("SquareRoot request received")
+
+	num := req.GetNum()
+	if num < 0 {
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			"Input to Real Root Functions cannot be smaller than 0",
+		)
+	}
+	res := &calculatepb.SquareRootResponse{
+		RootNum: math.Sqrt(num),
+	}
+
+	return res, nil
+
 }
 
 func main() {
