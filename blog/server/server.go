@@ -32,18 +32,22 @@ type blogItem struct {
 }
 
 func (s *server) CreateBlog(ctx context.Context, req *blogpb.CreateBlogRequest) (*blogpb.CreateBlogResponse, error) {
+
+	fmt.Println("CreateBlog Request received")
 	blog := req.GetBlog()
 
 	data := blogItem{
 		AuthorID: blog.GetAuthorId(),
 		Title:    blog.GetTitle(),
-		Content:  blog.GetTitle(),
+		Content:  blog.GetContent(),
 	}
 
 	result, err := coll.InsertOne(ctx, data)
 	if err != nil {
 		log.Fatalf("Unable to insert document: %v", err)
 	}
+
+	fmt.Println("Blog added to the database")
 
 	res := &blogpb.CreateBlogResponse{
 		Id: result.InsertedID.(primitive.ObjectID).Hex(),
